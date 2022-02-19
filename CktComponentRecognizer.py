@@ -99,7 +99,7 @@ def thresholdImage(img):
     if blockSize % 2 == 0: blockSize+=1
     img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     img = cv2.adaptiveThreshold(img, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY_INV, blockSize, 16)
-    return cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    return cv2.cvtColor(img, cv2.COLOR_GRAY2BGR)
 
 
 def resizeImage(img):
