@@ -2,7 +2,6 @@
 # so that it can be used in other files seemlessly
 
 # Libraries
-from msilib.schema import Component
 import torch.nn as nn
 import torch
 import cv2
