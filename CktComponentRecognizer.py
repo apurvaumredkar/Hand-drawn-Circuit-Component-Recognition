@@ -94,13 +94,14 @@ def recognize(img):
 
 
 def thresholdImage(img):
-    _, w = img.shape
+    w = img.shape[1]
     blockSize = w//5
-    if blockSize % 2 == 0:
-        blockSize += 1
-    return cv2.adaptiveThreshold(img, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY_INV, blockSize, 16)
+    if blockSize % 2 == 0: blockSize+=1
+    img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    img = cv2.adaptiveThreshold(img, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY_INV, blockSize, 16)
+    return cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
 
 def resizeImage(img):
-    WIDTH = HEIGHT = 64
+    WIDTH = HEIGHT = 224
     return cv2.resize(img, [WIDTH, HEIGHT], interpolation=cv2.INTER_AREA)
