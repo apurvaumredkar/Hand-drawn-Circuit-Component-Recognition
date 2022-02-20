@@ -115,4 +115,4 @@ def thresholdImage(img):
 
 def resizeImage(img):
     WIDTH = HEIGHT = 224
-    return cv2.resize(img, [WIDTH, HEIGHT], interpolation=cv2.INTER_AREA)
+    return cv2.resize(img, (WIDTH, HEIGHT), interpolation=cv2.INTER_AREA)
