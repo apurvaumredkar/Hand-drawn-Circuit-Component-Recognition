@@ -95,7 +95,6 @@ def recognize(img):
             output = model(tf_img)
             output = torch.max(output, dim=1)
             
-            print(components[output.indices.item()], output.values.item())
             if output_prob < output.values.item(): 
                 output_prob = output.values.item()
                 output_name = components[output.indices.item()]
