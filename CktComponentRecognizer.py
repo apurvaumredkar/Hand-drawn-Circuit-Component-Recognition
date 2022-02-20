@@ -7,6 +7,8 @@ import torch
 import cv2
 from PIL import Image
 from torchvision import transforms
+from scipy import ndimage 
+
 
 tf = transforms.Compose([transforms.ToTensor(), transforms.Normalize(
     mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])])
@@ -68,13 +70,13 @@ def recognize(img):
     components = ['battery', 'capacitor', 'diode', 'ground',
                   'inductor', 'led', 'mosfet', 'resistor', 'switch', 'transistor']
 
+    output_prob = 0
+
     if type(img) == str:
         img = cv2.imread(img)       # reading image from file path
 
     img = thresholdImage(img)       # converting image to binary
     img = resizeImage(img)          # resizing image to 224 x224 x 3
-    # converting array to PIL image so it can be input to the model
-    img = Image.fromarray(img)
 
     # initializing GPU, if present
     device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
@@ -83,14 +85,24 @@ def recognize(img):
     # shifting model to device
     model.to(device)
 
-    with torch.no_grad():
-        # converting PIL Image to tensor
-        tf_img = tf(img).float().unsqueeze_(0).to(device)
-        model.eval()
-        output = model(tf_img)
-        output = torch.max(output, dim=1)
+    angle = 0
 
-    return components[output.indices.item()], output.values.item()
+    with torch.no_grad():
+        while angle < 360:
+            img = Image.fromarray(img)  # numpy.ndarray to PIL image
+            tf_img = tf(img).float().unsqueeze_(0).to(device) # converting PIL Image to tensor
+            model.eval()
+            output = model(tf_img)
+            output = torch.max(output, dim=1)
+            
+            print(components[output.indices.item()], output.values.item())
+            if output_prob < output.values.item(): 
+                output_prob = output.values.item()
+                output_name = components[output.indices.item()]
+
+            img = ndimage.rotate(img, 30, reshape = False)
+            angle+=30
+        return output_name, output_prob
 
 
 def thresholdImage(img):
