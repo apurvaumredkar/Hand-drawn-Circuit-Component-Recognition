@@ -57,7 +57,7 @@ class myNet(nn.Module):
         return x
 
 
-def recognize(img):
+def recognize_component(img):
     '''
     The function recognizes the electronic component in the given image
     Input can be either:    string (specifying the file path to the image)
