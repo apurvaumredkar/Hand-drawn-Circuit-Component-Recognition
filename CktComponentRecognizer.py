@@ -46,7 +46,7 @@ class myNet(nn.Module):
             nn.Dropout(p=0.5),
             nn.Linear(in_features=4096, out_features=4096),
             nn.ReLU(inplace=True),
-            nn.Linear(in_features=4096, out_features=10),
+            nn.Softmax(in_features=4096, out_features=10),
         )
 
     def forward(self, x):
@@ -81,7 +81,7 @@ def recognize_component(img):
     # initializing GPU, if present
     device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
     # loading trained model
-    model = torch.load("./CktComponentRecognizer.pt")
+    model = torch.load("D:\VNIT ECE\ECE 8th Sem\ML\PROJECT\Hand-drawn-Circuit-Component-Recognition\CktComponentRecognizer.pt")
     # shifting model to device
     model.to(device)
 
