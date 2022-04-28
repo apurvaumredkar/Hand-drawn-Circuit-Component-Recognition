@@ -3,6 +3,7 @@
 
 # Libraries
 import torch.nn as nn
+import torch.nn.functional as F
 import torch
 import cv2
 from PIL import Image
@@ -10,51 +11,34 @@ from torchvision import transforms
 from scipy import ndimage 
 
 
-tf = transforms.Compose([transforms.ToTensor(), transforms.Normalize(
-    mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])])
+tf = transforms.Compose([transforms.Grayscale(num_output_channels = 1), transforms.ToTensor()])
 
 
 class myNet(nn.Module):
     def __init__(self):
         super().__init__()
-        # using the AlexNet architecture
-        # input images are already of size 224 x 224 x 3, no resizing required
-        self.feature_extraction = nn.Sequential(
-            nn.Conv2d(in_channels=3, out_channels=96, kernel_size=11,
-                      stride=4, padding=2, bias=False),
-            nn.ReLU(inplace=True),
-            nn.MaxPool2d(kernel_size=3, stride=2, padding=0),
-            nn.Conv2d(in_channels=96, out_channels=192,
-                      kernel_size=5, stride=1, padding=2, bias=False),
-            nn.ReLU(inplace=True),
-            nn.MaxPool2d(kernel_size=3, stride=2, padding=0),
-            nn.Conv2d(in_channels=192, out_channels=384,
-                      kernel_size=3, stride=1, padding=1, bias=False),
-            nn.ReLU(inplace=True),
-            nn.Conv2d(in_channels=384, out_channels=256,
-                      kernel_size=3, stride=1, padding=1, bias=False),
-            nn.ReLU(inplace=True),
-            nn.Conv2d(in_channels=256, out_channels=256,
-                      kernel_size=3, stride=1, padding=1, bias=False),
-            nn.ReLU(inplace=True),
-            nn.MaxPool2d(kernel_size=3, stride=2, padding=0),
-        )
-        self.classifier = nn.Sequential(
-            nn.Dropout(p=0.5),
-            nn.Linear(in_features=256*6*6, out_features=4096),
-            nn.ReLU(inplace=True),
-            nn.Dropout(p=0.5),
-            nn.Linear(in_features=4096, out_features=4096),
-            nn.ReLU(inplace=True),
-            nn.Softmax(in_features=4096, out_features=10),
-        )
+        self.conv1 = nn.Conv2d(1, 6, 5)
+        self.conv2 = nn.Conv2d(6, 16, 3)
+        self.conv3 = nn.Conv2d(16, 24, 5)
+        self.conv4 = nn.Conv2d(24, 32, 3)
+
+        self.pool = nn.MaxPool2d(2)
+
+        self.fc1 = nn.Linear(32*5*5, 320)
+        self.fc2 = nn.Linear(320, 80)
+        self.fc3 = nn.Linear(80, 10)
+
 
     def forward(self, x):
-        x = self.feature_extraction(x)
-        x = x.view(x.size(0), 256*6*6)
-        x = self.classifier(x)
-
-        return x
+        x = self.pool(F.relu(self.conv1(x)))
+        x = self.pool(F.relu(self.conv2(x)))
+        x = self.pool(F.relu(self.conv3(x)))
+        x = F.relu(self.conv4(x))
+        x = torch.flatten(x, 1)
+        x = F.relu(self.fc1(x))
+        x = F.relu(self.fc2(x))
+        x = F.softmax(self.fc3(x))
+        return x 
 
 
 def recognize_component(img):
@@ -73,7 +57,7 @@ def recognize_component(img):
     output_prob = 0
 
     if type(img) == str:
-        img = cv2.imread(img)       # reading image from file path
+        img = cv2.imread(img, 0)       # reading image from file path
 
     img = thresholdImage(img)       # converting image to binary
     img = resizeImage(img)          # resizing image to 224 x224 x 3
@@ -108,11 +92,10 @@ def thresholdImage(img):
     w = img.shape[1]
     blockSize = w//5
     if blockSize % 2 == 0: blockSize+=1
-    img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-    img = cv2.adaptiveThreshold(img, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY_INV, blockSize, 16)
-    return cv2.cvtColor(img, cv2.COLOR_GRAY2BGR)
+    return cv2.adaptiveThreshold(img, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY_INV, blockSize, 16)
+    
 
 
 def resizeImage(img):
-    WIDTH = HEIGHT = 224
+    WIDTH = HEIGHT = 84
     return cv2.resize(img, (WIDTH, HEIGHT), interpolation=cv2.INTER_AREA)
