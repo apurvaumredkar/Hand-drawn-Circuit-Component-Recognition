@@ -10,4 +10,6 @@ Original images acquired: https://drive.google.com/drive/folders/1F5hXOdOmiUXcd0
 
 A simple GUI has been developed using Tkinter and Pygame libraries for demonstration purposes.
 
+Paper drafted for this project has also been attached.
+
 NOTE: Make sure all the code files and dataset folders are in the same directory for a error-free execution.
