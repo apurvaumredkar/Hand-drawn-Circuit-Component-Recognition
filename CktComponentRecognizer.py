@@ -90,6 +90,6 @@ def thresholdImage(img):
     return cv2.adaptiveThreshold(img, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY_INV, blockSize, 16)
 
 
-def resizeImage(img):
+def resizeImage(img): 
     WIDTH = HEIGHT = 84
     return cv2.resize(img, (WIDTH, HEIGHT), interpolation=cv2.INTER_AREA)
