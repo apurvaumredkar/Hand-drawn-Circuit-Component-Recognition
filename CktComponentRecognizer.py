@@ -8,10 +8,11 @@ import torch
 import cv2
 from PIL import Image
 from torchvision import transforms
-from scipy import ndimage 
+import os
 
 
-tf = transforms.Compose([transforms.Grayscale(num_output_channels = 1), transforms.ToTensor()])
+tf = transforms.Compose([transforms.Grayscale(
+    num_output_channels=1), transforms.ToTensor()])
 
 
 class myNet(nn.Module):
@@ -28,7 +29,6 @@ class myNet(nn.Module):
         self.fc2 = nn.Linear(320, 80)
         self.fc3 = nn.Linear(80, 10)
 
-
     def forward(self, x):
         x = self.pool(F.relu(self.conv1(x)))
         x = self.pool(F.relu(self.conv2(x)))
@@ -38,7 +38,7 @@ class myNet(nn.Module):
         x = F.relu(self.fc1(x))
         x = F.relu(self.fc2(x))
         x = F.softmax(self.fc3(x))
-        return x 
+        return x
 
 
 def recognize_component(img):
@@ -58,42 +58,36 @@ def recognize_component(img):
 
     if type(img) == str:
         img = cv2.imread(img, 0)       # reading image from file path
+        img = thresholdImage(img)       # converting image to binary
 
-    img = thresholdImage(img)       # converting image to binary
-    img = resizeImage(img)          # resizing image to 224 x224 x 3
+    img = resizeImage(img)       # resizing to 84x84x1
 
     # initializing GPU, if present
     device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
     # loading trained model
-    model = torch.load("D:\VNIT ECE\ECE 8th Sem\ML\PROJECT\Hand-drawn-Circuit-Component-Recognition\CktComponentRecognizer.pt")
+    model = torch.load(r"./CktComponentRecognizer.pt")
     # shifting model to device
     model.to(device)
 
-    angle = 0
-
     with torch.no_grad():
-        while angle < 360:
-            img = Image.fromarray(img)  # numpy.ndarray to PIL image
-            tf_img = tf(img).float().unsqueeze_(0).to(device) # converting PIL Image to tensor
-            model.eval()
-            output = model(tf_img)
-            output = torch.max(output, dim=1)
-            
-            if output_prob < output.values.item(): 
-                output_prob = output.values.item()
-                output_name = components[output.indices.item()]
+        img = Image.fromarray(img)  # numpy.ndarray to PIL image
+        tf_img = tf(img).float().unsqueeze_(0).to(
+            device)  # converting PIL Image to tensor
+        model.eval()
+        output = model(tf_img)
+        output = torch.max(output, dim=1)
+        output_prob = float(output[0][0])
+        output_name = components[output[1]]
 
-            img = ndimage.rotate(img, 30, reshape = False)
-            angle+=30
-        return output_name, output_prob
+    return output_name, output_prob
 
 
 def thresholdImage(img):
     w = img.shape[1]
     blockSize = w//5
-    if blockSize % 2 == 0: blockSize+=1
+    if blockSize % 2 == 0:
+        blockSize += 1
     return cv2.adaptiveThreshold(img, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY_INV, blockSize, 16)
-    
 
 
 def resizeImage(img):
