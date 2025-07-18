@@ -4,8 +4,6 @@ A custom convolutional neural network capable of detecting 10 hand-drawn circuit
 
 The "CktComponentRecognizer.py" file consists of the neural network architecture, programmed using the Pytorch ML Framework in Python 3.8.
 
-Original images acquired for the dataset: https://drive.google.com/drive/folders/14J6al19sL4wZ3UkMM_SYQ_00xxmEDO6r?usp=sharing  
-
 A simple GUI has been developed using Tkinter and Pygame libraries for demonstration purposes.
 
 Paper drafted for this project has also been attached.
